@@ -1,0 +1,11 @@
+[
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Lead", 
+  "modified": "2016-04-10 05:51:24.482690", 
+  "name": "Lead-Client", 
+  "script": "var is_mobno_valid = false;\n\nfrappe.ui.form.on(\"Lead\", \"mobile_no\", function(frm){\n\tvar mobno = frm.doc.mobile_no;\n\tvar rx = new RegExp(\"^[789]\\\\d{9}$\"); \n\tvar isvalid = rx.test(mobno);\n\n\tif (isvalid == true) {\n          is_mobno_valid = true;\n\t} else {\n          is_mobno_valid = false;\n\t  msgprint(\"Entered Mobile No. is either incomplete or invalid. <br /> Tip: Add it without the +0 or +91 at the beginning.\", \"Invalid Mobile No\");\n\t}\n});\n\nfrappe.ui.form.on(\"Lead\", \"validate\", function(frm) {\n   if (!is_mobno_valid) {\n       msgprint(\"Entered Mobile No. is either incomplete or invalid. <br /> Tip: Add it without the +0 or +91 at the beginning.\", \"Invalid Mobile No\");\n      validated = false;\n   }\n\n});", 
+  "script_type": "Client"
+ }
+]

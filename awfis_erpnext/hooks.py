@@ -110,4 +110,4 @@ app_license = "GPL v3"
 # override_whitelisted_methods = {
 # 	"frappe.desk.doctype.event.event.get_events": "awfis_erpnext.event.get_events"
 # }
-
+fixtures = ["Custom Script", "Custom Field"]
