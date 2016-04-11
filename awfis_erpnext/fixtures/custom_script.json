@@ -16,5 +16,14 @@
   "name": "Sales Order-Client", 
   "script": "frappe.ui.form.on(\"Sales Order\", \"territory\", function(frm){\n     frm.set_query(\"centre\", function() {\n\t        return {\n\t            \"filters\": {\n\t                \"city\": frm.doc.territory\n\t            }\n\t        };\n\t    });\n});\n\nfrappe.ui.form.on(\"Sales Order\", \"refresh\", function(frm){\n\tfrm.set_query(\"territory\", function() {\n    \treturn {\n\t\t\t\"filters\": {\n                \"parent_territory\": \"India\"\n            }\n        };\n \t});\n});", 
   "script_type": "Client"
+ }, 
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Contact", 
+  "modified": "2016-04-11 13:11:34.248650", 
+  "name": "Contact-Client", 
+  "script": "var is_mobno_valid = false;\n\nfrappe.ui.form.on(\"Contact\", \"mobile_no\", function(frm){\n\tvar mobno = frm.doc.mobile_no;\n\tvar rx = new RegExp(\"^[789]\\\\d{9}$\"); \n\tvar isvalid = rx.test(mobno);\n\n\tif (isvalid == true) {\n          is_mobno_valid = true;\n\t} else {\n          is_mobno_valid = false;\n\t  msgprint(\"Entered Mobile No. is either incomplete or invalid. <br /> Tip: Add it without the +0 or +91 at the beginning.\", \"Invalid Mobile No\");\n\t}\n});\n\nfrappe.ui.form.on(\"Contact\", \"validate\", function(frm) {\n   if (!is_mobno_valid) {\n       msgprint(\"Entered Mobile No. is either incomplete or invalid. <br /> Tip: Add it without the +0 or +91 at the beginning.\", \"Invalid Mobile No\");\n      validated = false;\n   }\n\n});\n", 
+  "script_type": "Client"
  }
 ]
