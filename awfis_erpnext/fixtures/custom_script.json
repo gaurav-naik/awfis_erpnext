@@ -30,9 +30,9 @@
   "docstatus": 0, 
   "doctype": "Custom Script", 
   "dt": "Opportunity", 
-  "modified": "2016-04-13 17:51:49.314229", 
+  "modified": "2016-04-13 19:05:40.413283", 
   "name": "Opportunity-Client", 
-  "script": "frappe.ui.form.on(\"Opportunity\", \"city\", function(frm){\n     frm.set_query(\"centre\", function() {\n\t        return {\n\t            \"filters\": {\n\t                \"city\": frm.doc.city\n\t            }\n\t        };\n\t    });\n});\n\nfrappe.ui.form.on(\"Opportunity\", \"refresh\", function(frm){\n\tfrm.set_query(\"city\", function() {\n    \treturn {\n\t\t\t\"filters\": {\n                \"is_group\": 0\n            }\n        };\n \t});\n});\n\nfrappe.ui.form.on(\"Opportunity\", \"case_type\", function(frm){\n \tif (frm.doc.case_type == \"Query\" || frm.doc.case_type == \"Requirement\") {\n\t\tfrm.set_value(\"enquiry_type\", \"Sales\");\n\t} else if (frm.doc.case_type == \"Complaint\") {\n\t \tfrm.set_value(\"enquiry_type\", \"Maintenance\");\n \t}\n});\n\nfrappe.ui.form.on(\"Opportunity\", \"awfis_opportunity_channel\", function(frm){\n \tfrm.set_value(\"source\", frm.doc.awfis_opportunity_channel);\n});", 
+  "script": "frappe.ui.form.on(\"Opportunity\", \"city\", function(frm){\n     frm.set_query(\"centre\", function() {\n\t        return {\n\t            \"filters\": {\n\t                \"city\": frm.doc.city\n\t            }\n\t        };\n\t    });\n});\n\nfrappe.ui.form.on(\"Opportunity\", \"refresh\", function(frm){\n\tfrm.set_query(\"city\", function() {\n    \treturn {\n\t\t\t\"filters\": {\n                \"is_group\": 0\n            }\n        };\n \t});\n});\n\n\n\nfrappe.ui.form.on(\"Opportunity\", \"awfis_opportunity_channel\", function(frm){\n \tfrm.set_value(\"source\", frm.doc.awfis_opportunity_channel);\n});", 
   "script_type": "Client"
  }
 ]
