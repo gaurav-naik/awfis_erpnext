@@ -34,5 +34,14 @@
   "name": "Opportunity-Client", 
   "script": "frappe.ui.form.on(\"Opportunity\", \"city\", function(frm){\n     frm.set_query(\"centre\", function() {\n\t        return {\n\t            \"filters\": {\n\t                \"city\": frm.doc.city\n\t            }\n\t        };\n\t    });\n});\n\nfrappe.ui.form.on(\"Opportunity\", \"refresh\", function(frm){\n\tfrm.set_query(\"city\", function() {\n    \treturn {\n\t\t\t\"filters\": {\n                \"is_group\": 0\n            }\n        };\n \t});\n});\n\n\n\nfrappe.ui.form.on(\"Opportunity\", \"awfis_opportunity_channel\", function(frm){\n \tfrm.set_value(\"source\", frm.doc.awfis_opportunity_channel);\n});", 
   "script_type": "Client"
+ }, 
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Customer", 
+  "modified": "2016-04-13 21:09:34.469728", 
+  "name": "Customer-Client", 
+  "script": "frappe.ui.form.on(\"Customer\", \"company_website\", function(frm){\n \tfrm.set_value(\"website\", frm.doc.company_website);\n});\n", 
+  "script_type": "Client"
  }
 ]
