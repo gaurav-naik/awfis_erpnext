@@ -6,7 +6,7 @@ frappe.ui.form.on('Awfis Centre', {
 	    cur_frm.set_query("city", function() {
 	        return {
 	            "filters": {
-	                "parent_territory": "India"
+	                "is_group": 0
 	            }
 	        };
 	    });
