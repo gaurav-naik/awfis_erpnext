@@ -8,7 +8,7 @@ app_description = "ERPNext extensions for Awfis"
 app_icon = "octicon octicon-file-directory"
 app_color = "#DA251D"
 app_email = "support@castlecraft.in"
-app_version = "0.0.1"
+app_version = "1.0.0"
 app_license = "GPL v3"
 
 # Includes in <head>
@@ -110,4 +110,4 @@ app_license = "GPL v3"
 # override_whitelisted_methods = {
 # 	"frappe.desk.doctype.event.event.get_events": "awfis_erpnext.event.get_events"
 # }
-
+fixtures = ["Custom Script", "Custom Field", "Property Setter"]
