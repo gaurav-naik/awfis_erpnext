@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from . import __version__ as app_version
 
 app_name = "awfis_erpnext"
 app_title = "Awfis Erpnext"
@@ -8,7 +9,6 @@ app_description = "ERPNext extensions for Awfis"
 app_icon = "octicon octicon-file-directory"
 app_color = "#DA251D"
 app_email = "support@castlecraft.in"
-app_version = "1.0.1"
 app_license = "GPL v3"
 
 # Includes in <head>
