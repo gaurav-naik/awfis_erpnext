@@ -486,11 +486,11 @@
   "doctype": "Property Setter", 
   "doctype_or_field": "DocField", 
   "field_name": "status", 
-  "modified": "2016-04-14 11:30:13.434214", 
+  "modified": "2016-06-30 13:41:19.613374", 
   "name": "Lead-status-options", 
   "property": "options", 
   "property_type": "Text", 
-  "value": "Open\nReplied\nOpportunity\nInterested\nConverted\nDo Not Contact\nLost"
+  "value": "Open\nFollow-up\nWon\nLost\nJunk Lead"
  }, 
  {
   "_assign": null, 
