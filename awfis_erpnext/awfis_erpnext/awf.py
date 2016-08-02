@@ -1,4 +1,5 @@
 import frappe
+from frappe import async
 
 @frappe.whitelist()
 def check_duplicate_centres(docname):
@@ -15,4 +16,130 @@ def check_duplicate_centres(docname):
 	#	return '1'
 	#else:
 #		return '0'
-	#return  "{0} <<=====>> {1}".format(c, set(c))
+	#return  "{0} <<=====>> {1}".format(c, set(c))\
+
+@frappe.whitelist(allow_guest=True)
+def popuptrial(mobileno):
+	for u in frappe.utils.user.get_users():
+		roles = frappe.utils.user.get_roles(u)
+		if roles['Sales User']:
+			uname = u['name']
+			frappe.async.publish_realtime(event="msgprint", message=mobileno, user=uname)
+
+
+from frappe.desk.notifications import clear_notifications
+@frappe.whitelist(allow_guest=True)
+def popmsgtrial(mobileno):
+	# clear_notifications
+	#frappe.async.publish_realtime('abc', message=mobileno)
+	frappe.async.publish_realtime('msgprint')
+
+
+
+	# for u in frappe.utils.user.get_users():
+	# 	roles = frappe.utils.user.get_roles(u)
+	# 	if roles['Sales User']:
+	# 		uname = u['name']
+	# 		frappe.async.publish_realtime(event="msgprint", message=mobileno, user=uname)
+
+
+
+	#frappe.msgprint(frappe.session.user)
+
+	# sales_users = frappe.db.sql("select distinct A.name from tabUser A INNER JOIN tabUserRole B ON A.name = B.parent  where B.role like 'Sales User';")
+
+	# for u in sales_users:
+	# 	#frappe.msgprint(u[0])
+	# 	frappe.async.publish_realtime(event="msgprint", message=txt, user=u[0])
+
+
+@frappe.whitelist(allow_guest=True)
+def erpnext_notify_incoming_call(mobileno):
+
+	#http://0.0.0.0:8000/api/method/awfis_erpnext.awfis_erpnext.awf.lead_info_popup/?mobileno=9833222251
+
+	mobno = validate_mobile_no(mobileno)
+
+	ld = frappe.get_all("Lead", fields=["*"], filters={"mobile_no": mobno})	
+
+	if not ld:
+		#Create stub lead.
+		ld = frappe.new_doc("Lead")
+
+		ld.mobile_no = mobno
+		ld.lead_name = "New Lead {m}".format(m=mobno) 
+		
+		#Mandatory custom fields.
+		ld.first_name = "New Lead {m}".format(m=mobno)
+		ld.awfis_mobile_no = mobno
+		ld.source = "Other"
+		ld.awfis_lead_territory = "Mumbai"
+
+		#frappe.msgprint("Lead created. {lead}".format(lead=ld))
+		ld.insert(ignore_permissions=True)
+		frappe.db.commit()
+
+		erpnext_notify_incoming_call(mobno) #Recursive call. This branch wont be hit again for the same mobile no.
+
+	# elif len(ld) > 1:
+	# 	pass
+	# 	#Add error message to Lead: Duplicate Mobile No.
+	# 	#Loop through ld and display both leads.
+
+	else:
+		# Display the popup.
+		prms = {"mobile_no": ld[0].mobile_no, 
+				"lead_name": ld[0].lead_name, 
+				"company_name": ld[0].company_name,
+				"name": ld[0].name}
+
+		popup_content = frappe.render_template("awfis_erpnext/templates/lead_info.html", prms)
+
+
+	 	#Add to notifications.
+		notif = frappe.new_doc("Communication")
+		notif.subject = "Incoming Call {m}".format(m=mobno)
+		notif.communication_type = "Communication"
+		notif.content = popup_content #, {"communication_type": "Notification", "content": popup_content})
+		notif.status = "Linked"
+		notif.sent_or_received = "Sent"
+		notif.reference_doctype = "Lead"
+		notif.reference_name = ld[0].name
+
+		notif.insert(ignore_permissions=True)
+		frappe.db.commit()
+
+		#frappe.async.emit_via_redis(
+		#sales_users_logged_in = frappe.get_all("User", fields=['*'], filters={""})
+
+		#sales_users = frappe.db.sql("SELECT DISTINCT A.name FROM tabUser A INNER JOIN tabUserRole B ON A.name = B.parent WHERE A.enabled = 1 AND B.role LIKE 'Sales User';")
+
+		# for u in sales_users:
+		# 	uname = u[0]
+		# 	frappe.async.publish_realtime(event="msgprint", message=popup_content, user=uname)
+
+		#frappe.get_all("Users", fields)
+
+		# for u in frappe.utils.user.get_users():
+		# 	roles = get_roles(u)
+		# 	if 'Sales User' in roles:
+		# 		uname = u['email']
+		# 		frappe.async.publish_realtime(event="msgprint", message=popup_content, user=uname)
+
+		for u in frappe.get_all("User", fields=['name'], filters={"role": "Sales User"}):
+			frappe.async.publish_realtime(event="msgprint", message=popup_content, user=u.name)
+
+
+
+def validate_mobile_no(mobno):
+	return mobno
+
+
+#from frappe.core.notifications import get_notification_config
+
+def awfis_notification_filter():
+	return {
+		"for_doctype": {
+			"Communication": {"status": ["in", ('Linked', 'Open')], "communication_type": "Communication"}
+		}
+	}	
