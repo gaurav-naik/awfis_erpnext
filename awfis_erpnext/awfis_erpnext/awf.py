@@ -4,6 +4,7 @@ from frappe import _
 
 import re #regular expressions
 
+
 @frappe.whitelist()
 def check_duplicate_centres(docname):
 	d = frappe.get_doc("Lead", docname)
@@ -188,16 +189,17 @@ def create_popup(caller_number, agent_id):
 		ld = frappe.get_doc("Lead", ld_name)
 	
 	#Make popup content.
-	lead_fields = {"mobile_no": ld.mobile_no, 
+	lead_fields = {"mobile_no": caller_number,  
 			"lead_name": ld.lead_name, 
 			"company_name": ld.company_name,
-			"name": ld.name}
+			"name": ld.name, 
+			"call_timestamp": frappe.utils.datetime.datetime.strftime(frappe.utils.datetime.datetime.today(), '%d/%m/%Y %H:%M:%S')}
 
 	popup_content = frappe.render_template("awfis_erpnext/templates/lead_info.html", lead_fields)
 
 	#Create a notification.
 	notif = frappe.new_doc("Communication")
-	notif.subject = "Incoming Call {m}".format(m=caller_number_processed)
+	notif.subject = "Incoming Call {m}".format(m=caller_number)
 	notif.communication_type = "Communication"
 	notif.content = popup_content #, {"communication_type": "Notification", "content": popup_content})
 	notif.status = "Linked"
@@ -205,11 +207,12 @@ def create_popup(caller_number, agent_id):
 	notif.reference_doctype = "Lead"
 	notif.reference_name = ld.name
 
-	notif.insert()
+	notif.insert(ignore_permissions=True)
 	frappe.db.commit()
 
-	#Display the actual popup.
-	frappe.async.publish_realtime(event="msgprint", message=popup_content, user=agent_id)
+	#Display the actual popup to all sales users.
+	for u in frappe.get_all("User", fields=['name'], filters={"role": "Sales User"}):
+		frappe.async.publish_realtime(event="msgprint", message=popup_content, user=u.name)
 
 def process_mobile_no(caller_number):
 	#Strip the +91
