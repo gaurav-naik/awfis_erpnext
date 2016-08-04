@@ -134,7 +134,7 @@ def check_duplicate_centres(docname):
 # 			frappe.async.publish_realtime(event="msgprint", message=popup_content, user=u.name)
 
 @frappe.whitelist(allow_guest=True)
-def erpnext_notify_incoming_call(caller_number, agent_number):
+def notify_incoming_call(caller_number, agent_number):
 
 	agent_id = validate_agent(agent_number)
 
