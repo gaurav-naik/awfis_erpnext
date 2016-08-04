@@ -134,12 +134,12 @@ def check_duplicate_centres(docname):
 # 			frappe.async.publish_realtime(event="msgprint", message=popup_content, user=u.name)
 
 @frappe.whitelist(allow_guest=True)
-def notify_incoming_call(caller_number, agent_number):
+def notify_incoming_call(caller_number, agent_number, call_id):
 
 	agent_id = validate_agent(agent_number)
 
 	if agent_id:
-		create_popup(caller_number, agent_id)
+		create_popup(caller_number, agent_id, call_id)
 	else:
 		pass #Handle this?
 
@@ -162,7 +162,7 @@ def validate_agent(agent_number):
 		return None
 
 
-def create_popup(caller_number, agent_id):
+def create_popup(caller_number, agent_id, call_id):
 	#http://0.0.0.0:8000/api/method/awfis_erpnext.awfis_erpnext.awf.lead_info_popup/?mobileno=9833222251
 
 	caller_number_processed = process_mobile_no(caller_number)
@@ -175,15 +175,15 @@ def create_popup(caller_number, agent_id):
 		#Create stub lead if lead is not found.
 		ld = frappe.new_doc("Lead")
 		ld.mobile_no = caller_number_processed
-		ld.lead_name = "New Lead {m}".format(m=caller_number_processed) 
+		ld.lead_name = "New Lead ({m})".format(m=caller_number) 
 		
 		#Set mandatory custom fields.
-		ld.first_name = "New Lead {m}".format(m=caller_number_processed)
+		ld.first_name = "New Lead ({m})".format(m=caller_number)
 		ld.awfis_mobile_no = caller_number_processed
 		ld.source = "Other"
 		ld.awfis_lead_territory = "Mumbai"
 
-		ld.insert()
+		ld.insert(ignore_permissions=True)
 		frappe.db.commit()
 	else:
 		ld = frappe.get_doc("Lead", ld_name)
@@ -193,7 +193,8 @@ def create_popup(caller_number, agent_id):
 			"lead_name": ld.lead_name, 
 			"company_name": ld.company_name,
 			"name": ld.name, 
-			"call_timestamp": frappe.utils.datetime.datetime.strftime(frappe.utils.datetime.datetime.today(), '%d/%m/%Y %H:%M:%S')}
+			"call_timestamp": frappe.utils.datetime.datetime.strftime(frappe.utils.datetime.datetime.today(), '%d/%m/%Y %H:%M:%S'), 
+			"call_id": call_id}
 
 	popup_content = frappe.render_template("awfis_erpnext/templates/lead_info.html", lead_fields)
 
