@@ -16,7 +16,7 @@ app_license = "GPL v3"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/awfis_erpnext/css/awfis_erpnext.css"
-# app_include_js = "/assets/awfis_erpnext/js/awfis_erpnext.js"
+app_include_js = "/assets/js/awfis.min.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/awfis_erpnext/css/awfis_erpnext.css"
@@ -52,7 +52,7 @@ app_license = "GPL v3"
 # ------------------
 # See frappe.core.notifications.get_notification_config
 
-# notification_config = "awfis_erpnext.notifications.get_notification_config"
+notification_config = "awfis_erpnext.awfis_erpnext.awf.awfis_notification_filter"
 
 # Permissions
 # -----------
