@@ -240,3 +240,8 @@ def awfis_notification_filter():
 			"Communication": {"status": ["in", ('Linked', 'Open')], "communication_type": "Communication"}
 		}
 	}	
+
+@frappe.whitelist()
+def generate_key_knowlarity():
+	apikey = frappe.generate_hash()
+	return apikey #{ "key" : apikey }
