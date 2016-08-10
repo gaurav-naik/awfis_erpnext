@@ -4,6 +4,8 @@ from frappe import _
 
 import re #regular expressions
 
+from frappe.async import emit_via_redis, get_site_room
+
 
 @frappe.whitelist()
 def check_duplicate_centres(docname):
@@ -11,137 +13,20 @@ def check_duplicate_centres(docname):
 	c = (d.lead_awfis_centres[0])
 	
 	return c
-	#return True #Returns {"message":true}
-
-	#return (len(d.lead_awfis_centres) != len(set(d.lead_awfis_centres))) #returns {}
-
-	#if (len(d.lead_awfis_centres) != len(set(d.lead_awfis_centres))):
-		#return True ## Returns {}
-	#	return '1'
-	#else:
-#		return '0'
-	#return  "{0} <<=====>> {1}".format(c, set(c))\
-
-# @frappe.whitelist(allow_guest=True)
-# def popuptrial(mobileno):
-# 	for u in frappe.utils.user.get_users():
-# 		roles = frappe.utils.user.get_roles(u)
-# 		if roles['Sales User']:
-# 			uname = u['name']
-# 			frappe.async.publish_realtime(event="msgprint", message=mobileno, user=uname)
-
-
-# from frappe.desk.notifications import clear_notifications
-# @frappe.whitelist(allow_guest=True)
-# def popmsgtrial(mobileno):
-# 	# clear_notifications
-# 	#frappe.async.publish_realtime('abc', message=mobileno)
-# 	frappe.async.publish_realtime('msgprint')
-
-
-
-	# for u in frappe.utils.user.get_users():
-	# 	roles = frappe.utils.user.get_roles(u)
-	# 	if roles['Sales User']:
-	# 		uname = u['name']
-	# 		frappe.async.publish_realtime(event="msgprint", message=mobileno, user=uname)
-
-
-
-	#frappe.msgprint(frappe.session.user)
-
-	# sales_users = frappe.db.sql("select distinct A.name from tabUser A INNER JOIN tabUserRole B ON A.name = B.parent  where B.role like 'Sales User';")
-
-	# for u in sales_users:
-	# 	#frappe.msgprint(u[0])
-	# 	frappe.async.publish_realtime(event="msgprint", message=txt, user=u[0])
-
-
-# @frappe.whitelist(allow_guest=True)
-# def erpnext_notify_incoming_call(mobileno):
-
-# 	#http://0.0.0.0:8000/api/method/awfis_erpnext.awfis_erpnext.awf.lead_info_popup/?mobileno=9833222251
-
-# 	mobno = validate_mobile_no(mobileno)
-
-# 	ld = frappe.get_all("Lead", fields=["*"], filters={"mobile_no": mobno})	
-
-# 	if not ld:
-# 		#Create stub lead.
-# 		ld = frappe.new_doc("Lead")
-
-# 		ld.mobile_no = mobno
-# 		ld.lead_name = "New Lead {m}".format(m=mobno) 
-		
-# 		#Mandatory custom fields.
-# 		ld.first_name = "New Lead {m}".format(m=mobno)
-# 		ld.awfis_mobile_no = mobno
-# 		ld.source = "Other"
-# 		ld.awfis_lead_territory = "Mumbai"
-
-# 		#frappe.msgprint("Lead created. {lead}".format(lead=ld))
-# 		ld.insert(ignore_permissions=True)
-# 		frappe.db.commit()
-
-# 		erpnext_notify_incoming_call(mobno) #Recursive call. This branch wont be hit again for the same mobile no.
-
-# 	# elif len(ld) > 1:
-# 	# 	pass
-# 	# 	#Add error message to Lead: Duplicate Mobile No.
-# 	# 	#Loop through ld and display both leads.
-
-# 	else:
-# 		# Display the popup.
-# 		prms = {"mobile_no": ld[0].mobile_no, 
-# 				"lead_name": ld[0].lead_name, 
-# 				"company_name": ld[0].company_name,
-# 				"name": ld[0].name}
-
-# 		popup_content = frappe.render_template("awfis_erpnext/templates/lead_info.html", prms)
-
-
-# 	 	#Add to notifications.
-# 		notif = frappe.new_doc("Communication")
-# 		notif.subject = "Incoming Call {m}".format(m=mobno)
-# 		notif.communication_type = "Communication"
-# 		notif.content = popup_content #, {"communication_type": "Notification", "content": popup_content})
-# 		notif.status = "Linked"
-# 		notif.sent_or_received = "Sent"
-# 		notif.reference_doctype = "Lead"
-# 		notif.reference_name = ld[0].name
-
-# 		notif.insert(ignore_permissions=True)
-# 		frappe.db.commit()
-
-# 		#frappe.async.emit_via_redis(
-# 		#sales_users_logged_in = frappe.get_all("User", fields=['*'], filters={""})
-
-# 		#sales_users = frappe.db.sql("SELECT DISTINCT A.name FROM tabUser A INNER JOIN tabUserRole B ON A.name = B.parent WHERE A.enabled = 1 AND B.role LIKE 'Sales User';")
-
-# 		# for u in sales_users:
-# 		# 	uname = u[0]
-# 		# 	frappe.async.publish_realtime(event="msgprint", message=popup_content, user=uname)
-
-# 		#frappe.get_all("Users", fields)
-
-# 		# for u in frappe.utils.user.get_users():
-# 		# 	roles = get_roles(u)
-# 		# 	if 'Sales User' in roles:
-# 		# 		uname = u['email']
-# 		# 		frappe.async.publish_realtime(event="msgprint", message=popup_content, user=uname)
-
-# 		for u in frappe.get_all("User", fields=['name'], filters={"role": "Sales User"}):
-# 			frappe.async.publish_realtime(event="msgprint", message=popup_content, user=u.name)
+	
 
 @frappe.whitelist(allow_guest=True)
 def notify_incoming_call(caller_number, agent_number, call_id):
 
-	agent_id = validate_agent(agent_number)
+	if validate_request_header() == 1:
+		agent_id = validate_agent(agent_number)
 
-	if agent_id:
-		create_popup(caller_number, agent_id, call_id)
+		if agent_id:
+			create_popup(caller_number, agent_id, call_id)
+		else:
+			return "Invalid agent number"
 	else:
-		pass #Handle this?
+		return "You are not authorized to make this request."
 
 
 def validate_agent(agent_number):
@@ -161,6 +46,16 @@ def validate_agent(agent_number):
 	else:
 		return None
 
+def validate_request_header():
+	key_header = frappe.get_request_header("awf_erpnext_api_key")
+	key_local = frappe.get_single("Awfis Settings").api_key_knowlarity
+
+	if key_header == "":
+		return 0 #"Key header is blank"
+	elif key_header != key_local:
+		return 0 #"{0} != {1} : Key header does not match local key".format(key_header, key_local)
+	else:
+		return 1 #""
 
 def create_popup(caller_number, agent_id, call_id):
 	#http://0.0.0.0:8000/api/method/awfis_erpnext.awfis_erpnext.awf.lead_info_popup/?mobileno=9833222251
@@ -245,3 +140,14 @@ def awfis_notification_filter():
 def generate_key_knowlarity():
 	apikey = frappe.generate_hash()
 	return apikey #{ "key" : apikey }
+
+@frappe.whitelist(allow_guest=True)
+def popuptest():
+
+	#frappe.msgprint(validate_request_header())
+
+	for u in frappe.get_all("User", fields=['name'], filters={"role": "Sales User"}):
+		#emit_via_redis(event="msgprint", message="Howdy!", room=get_site_room())
+		frappe.async.publish_realtime(event="msgprint", message="Howdy!", user=u.name)
+		#frappe.publish_realtime('msgprint', 'Howdy!', user='Administrator')
+		#frappe.msgprint(frappe.session.user)
