@@ -19,10 +19,13 @@ def notify_incoming_call(caller_number, agent_number, call_id):
 	
 	is_request_valid = validate_request_header()
 	caller_no = process_mobile_no(caller_number)
+	agent_no = process_mobile_no(agent_number)
 	agent_id = validate_agent(agent_number)
 
 	if is_request_valid != 1:
-		return "You are not authorized to make this request. [0]"
+		return "You are not authorized to make this request."
+	elif agent_no == "":
+		return "Agent number is invalid."
 	elif agent_id == "":
 		return "No agent with this number."
 	else:
@@ -108,6 +111,11 @@ def validate_request_header():
 
 def validate_agent(agent_number):
 	agent_number_processed = process_mobile_no(agent_number)
+
+	#If None, all agents are returned. Validation fails.
+	if not agent_number_processed:
+		return ""
+
 	agents = frappe.get_all("User", fields=['name'], filters={"role": "Sales User", "phone": agent_number_processed})
 
 	if len(agents) > 0:
