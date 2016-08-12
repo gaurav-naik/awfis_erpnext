@@ -4,6 +4,8 @@ from frappe import _
 
 import re #regular expressions
 
+from frappe.async import get_redis_server, get_user_room
+
 
 @frappe.whitelist()
 def check_duplicate_centres(docname):
@@ -11,160 +13,26 @@ def check_duplicate_centres(docname):
 	c = (d.lead_awfis_centres[0])
 	
 	return c
-	#return True #Returns {"message":true}
-
-	#return (len(d.lead_awfis_centres) != len(set(d.lead_awfis_centres))) #returns {}
-
-	#if (len(d.lead_awfis_centres) != len(set(d.lead_awfis_centres))):
-		#return True ## Returns {}
-	#	return '1'
-	#else:
-#		return '0'
-	#return  "{0} <<=====>> {1}".format(c, set(c))\
-
-# @frappe.whitelist(allow_guest=True)
-# def popuptrial(mobileno):
-# 	for u in frappe.utils.user.get_users():
-# 		roles = frappe.utils.user.get_roles(u)
-# 		if roles['Sales User']:
-# 			uname = u['name']
-# 			frappe.async.publish_realtime(event="msgprint", message=mobileno, user=uname)
-
-
-# from frappe.desk.notifications import clear_notifications
-# @frappe.whitelist(allow_guest=True)
-# def popmsgtrial(mobileno):
-# 	# clear_notifications
-# 	#frappe.async.publish_realtime('abc', message=mobileno)
-# 	frappe.async.publish_realtime('msgprint')
-
-
-
-	# for u in frappe.utils.user.get_users():
-	# 	roles = frappe.utils.user.get_roles(u)
-	# 	if roles['Sales User']:
-	# 		uname = u['name']
-	# 		frappe.async.publish_realtime(event="msgprint", message=mobileno, user=uname)
-
-
-
-	#frappe.msgprint(frappe.session.user)
-
-	# sales_users = frappe.db.sql("select distinct A.name from tabUser A INNER JOIN tabUserRole B ON A.name = B.parent  where B.role like 'Sales User';")
-
-	# for u in sales_users:
-	# 	#frappe.msgprint(u[0])
-	# 	frappe.async.publish_realtime(event="msgprint", message=txt, user=u[0])
-
-
-# @frappe.whitelist(allow_guest=True)
-# def erpnext_notify_incoming_call(mobileno):
-
-# 	#http://0.0.0.0:8000/api/method/awfis_erpnext.awfis_erpnext.awf.lead_info_popup/?mobileno=9833222251
-
-# 	mobno = validate_mobile_no(mobileno)
-
-# 	ld = frappe.get_all("Lead", fields=["*"], filters={"mobile_no": mobno})	
-
-# 	if not ld:
-# 		#Create stub lead.
-# 		ld = frappe.new_doc("Lead")
-
-# 		ld.mobile_no = mobno
-# 		ld.lead_name = "New Lead {m}".format(m=mobno) 
-		
-# 		#Mandatory custom fields.
-# 		ld.first_name = "New Lead {m}".format(m=mobno)
-# 		ld.awfis_mobile_no = mobno
-# 		ld.source = "Other"
-# 		ld.awfis_lead_territory = "Mumbai"
-
-# 		#frappe.msgprint("Lead created. {lead}".format(lead=ld))
-# 		ld.insert(ignore_permissions=True)
-# 		frappe.db.commit()
-
-# 		erpnext_notify_incoming_call(mobno) #Recursive call. This branch wont be hit again for the same mobile no.
-
-# 	# elif len(ld) > 1:
-# 	# 	pass
-# 	# 	#Add error message to Lead: Duplicate Mobile No.
-# 	# 	#Loop through ld and display both leads.
-
-# 	else:
-# 		# Display the popup.
-# 		prms = {"mobile_no": ld[0].mobile_no, 
-# 				"lead_name": ld[0].lead_name, 
-# 				"company_name": ld[0].company_name,
-# 				"name": ld[0].name}
-
-# 		popup_content = frappe.render_template("awfis_erpnext/templates/lead_info.html", prms)
-
-
-# 	 	#Add to notifications.
-# 		notif = frappe.new_doc("Communication")
-# 		notif.subject = "Incoming Call {m}".format(m=mobno)
-# 		notif.communication_type = "Communication"
-# 		notif.content = popup_content #, {"communication_type": "Notification", "content": popup_content})
-# 		notif.status = "Linked"
-# 		notif.sent_or_received = "Sent"
-# 		notif.reference_doctype = "Lead"
-# 		notif.reference_name = ld[0].name
-
-# 		notif.insert(ignore_permissions=True)
-# 		frappe.db.commit()
-
-# 		#frappe.async.emit_via_redis(
-# 		#sales_users_logged_in = frappe.get_all("User", fields=['*'], filters={""})
-
-# 		#sales_users = frappe.db.sql("SELECT DISTINCT A.name FROM tabUser A INNER JOIN tabUserRole B ON A.name = B.parent WHERE A.enabled = 1 AND B.role LIKE 'Sales User';")
-
-# 		# for u in sales_users:
-# 		# 	uname = u[0]
-# 		# 	frappe.async.publish_realtime(event="msgprint", message=popup_content, user=uname)
-
-# 		#frappe.get_all("Users", fields)
-
-# 		# for u in frappe.utils.user.get_users():
-# 		# 	roles = get_roles(u)
-# 		# 	if 'Sales User' in roles:
-# 		# 		uname = u['email']
-# 		# 		frappe.async.publish_realtime(event="msgprint", message=popup_content, user=uname)
-
-# 		for u in frappe.get_all("User", fields=['name'], filters={"role": "Sales User"}):
-# 			frappe.async.publish_realtime(event="msgprint", message=popup_content, user=u.name)
-
+	
 @frappe.whitelist(allow_guest=True)
 def notify_incoming_call(caller_number, agent_number, call_id):
-
+	
+	is_request_valid = validate_request_header()
+	caller_no = process_mobile_no(caller_number)
+	agent_no = process_mobile_no(agent_number)
 	agent_id = validate_agent(agent_number)
 
-	if agent_id:
-		create_popup(caller_number, agent_id, call_id)
+	if is_request_valid != 1:
+		return "You are not authorized to make this request."
+	elif agent_no == "":
+		return "Agent number is invalid."
+	elif agent_id == "":
+		return "No agent with this number."
 	else:
-		pass #Handle this?
-
-
-def validate_agent(agent_number):
-	agent_number_processed = process_mobile_no(agent_number)
-
-	#agent_id = frappe.db.get_value("User", {"phone": agent_number_processed, "role": "Sales User"}, "name")
-
-	agents = frappe.get_all("User", fields=['name'], filters={"role": "Sales User", "phone": agent_number_processed})
-
-	if len(agents) > 1:
-		frappe.throw(__("Multiple agents have the same mobile no."))
-
-	agent_id = agents[0]["name"] #Return the name of the first agent.
-
-	if agent_id:
-		return agent_id
-	else:
-		return None
+		create_popup(caller_number, agent_id, frappe.db.escape(call_id))
 
 
 def create_popup(caller_number, agent_id, call_id):
-	#http://0.0.0.0:8000/api/method/awfis_erpnext.awfis_erpnext.awf.lead_info_popup/?mobileno=9833222251
-
 	caller_number_processed = process_mobile_no(caller_number)
 
 	ld = None
@@ -187,7 +55,8 @@ def create_popup(caller_number, agent_id, call_id):
 		frappe.db.commit()
 	else:
 		ld = frappe.get_doc("Lead", ld_name)
-	
+
+
 	#Make popup content.
 	lead_fields = {"mobile_no": caller_number,  
 			"lead_name": ld.lead_name, 
@@ -215,22 +84,44 @@ def create_popup(caller_number, agent_id, call_id):
 	for u in frappe.get_all("User", fields=['name'], filters={"role": "Sales User"}):
 		frappe.async.publish_realtime(event="msgprint", message=popup_content, user=u.name)
 
+
+#Uses regex to match and extract a 10 digit mobile no from the caller_number parameter. 
+#'+' must be encoded if received from URL. 
 def process_mobile_no(caller_number):
-	#Strip the +91
-	#"^\+(91|0)\d{9,13}$" : Regex for number.
-
-	#Ensure that the raw number is in a specific format 
-	# rule = re.compile(r"^\+(91|0)\d{9,13}$")
-
-	# if not rule.search(caller_number):
-	# 	frappe.throw(_("Mobile No. format is invalid."))
-
-	#Process the number. Subtract left ten digits.
-	final_caller_number = caller_number[-10:]
+	matched_extracted_mobno = re.search(r"^\+?(91|0)\d{10}$", caller_number)
+	
+	if matched_extracted_mobno:
+		mobno = matched_extracted_mobno.group(0) 
+		return mobno[-10:]
+	else:
+		return ""
 
 
-	return final_caller_number
+def validate_request_header():
+	key_header = frappe.get_request_header("awf_erpnext_api_key")
+	key_local = frappe.get_single("Awfis Settings").api_key_knowlarity
 
+	if key_header == "":
+		return -1 #"Key header is blank"
+	elif key_header != key_local:
+		return 0 #"{0} != {1} : Key header does not match local key".format(key_header, key_local)
+	else:
+		return 1 #""
+
+
+def validate_agent(agent_number):
+	agent_number_processed = process_mobile_no(agent_number)
+
+	#If None, all agents are returned. Validation fails.
+	if not agent_number_processed:
+		return ""
+
+	agents = frappe.get_all("User", fields=['name'], filters={"role": "Sales User", "phone": agent_number_processed})
+
+	if len(agents) > 0:
+		return agents[0]["name"] #Return the name of the first agent.
+	else:
+		return ""
 
 #from frappe.core.notifications import get_notification_config
 
@@ -240,3 +131,28 @@ def awfis_notification_filter():
 			"Communication": {"status": ["in", ('Linked', 'Open')], "communication_type": "Communication"}
 		}
 	}	
+
+@frappe.whitelist()
+def generate_key_knowlarity():
+	apikey = frappe.generate_hash()
+	return apikey #{ "key" : apikey }
+
+@frappe.whitelist(allow_guest=True)
+def popuptest(caller_number, agent_number, call_id):
+	is_request_valid = validate_request_header()
+	caller_no = process_mobile_no(caller_number)
+	agent_id = validate_agent(agent_number)
+
+	if is_request_valid != 1:
+		return "You are not authorized to make this request. [0]"
+	elif agent_id == "":
+		return "No agent with this number."
+	else:
+		return "Popup created {c}, {a}, {cl}".format(c=caller_no, a=agent_number, cl=call_id)
+		#create_popup(caller_number, agent_id, frappe.db.escape(call_id))
+
+
+# @frappe.whitelist(allow_guest=True)
+# def regextest(caller_number):
+# 	cano = process_mobile_no(caller_number)
+# 	return "Raw: {r}, Processed: {p}".format(r=caller_number, p=cano)
