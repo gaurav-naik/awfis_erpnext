@@ -24,6 +24,8 @@ def notify_incoming_call(caller_number, agent_number, call_id):
 
 	if is_request_valid != 1:
 		return "You are not authorized to make this request."
+	elif caller_no == "":
+		return "Caller number is invalid."
 	elif agent_no == "":
 		return "Agent number is invalid."
 	elif agent_id == "":
