@@ -4,7 +4,7 @@ from frappe import _
 
 import re #regular expressions
 
-from frappe.async import emit_via_redis, get_site_room
+from frappe.async import get_redis_server, get_user_room
 
 
 @frappe.whitelist()
@@ -14,52 +14,22 @@ def check_duplicate_centres(docname):
 	
 	return c
 	
-
 @frappe.whitelist(allow_guest=True)
 def notify_incoming_call(caller_number, agent_number, call_id):
+	
+	is_request_valid = validate_request_header()
+	caller_no = process_mobile_no(caller_number)
+	agent_id = validate_agent(agent_number)
 
-	if validate_request_header() == 1:
-		agent_id = validate_agent(agent_number)
-
-		if agent_id:
-			create_popup(caller_number, agent_id, call_id)
-		else:
-			return "Invalid agent number"
+	if is_request_valid != 1:
+		return "You are not authorized to make this request. [0]"
+	elif agent_id == "":
+		return "No agent with this number."
 	else:
-		return "You are not authorized to make this request."
+		create_popup(caller_number, agent_id, frappe.db.escape(call_id))
 
-
-def validate_agent(agent_number):
-	agent_number_processed = process_mobile_no(agent_number)
-
-	#agent_id = frappe.db.get_value("User", {"phone": agent_number_processed, "role": "Sales User"}, "name")
-
-	agents = frappe.get_all("User", fields=['name'], filters={"role": "Sales User", "phone": agent_number_processed})
-
-	if len(agents) > 1:
-		frappe.throw(__("Multiple agents have the same mobile no."))
-
-	agent_id = agents[0]["name"] #Return the name of the first agent.
-
-	if agent_id:
-		return agent_id
-	else:
-		return None
-
-def validate_request_header():
-	key_header = frappe.get_request_header("awf_erpnext_api_key")
-	key_local = frappe.get_single("Awfis Settings").api_key_knowlarity
-
-	if key_header == "":
-		return 0 #"Key header is blank"
-	elif key_header != key_local:
-		return 0 #"{0} != {1} : Key header does not match local key".format(key_header, key_local)
-	else:
-		return 1 #""
 
 def create_popup(caller_number, agent_id, call_id):
-	#http://0.0.0.0:8000/api/method/awfis_erpnext.awfis_erpnext.awf.lead_info_popup/?mobileno=9833222251
-
 	caller_number_processed = process_mobile_no(caller_number)
 
 	ld = None
@@ -82,7 +52,8 @@ def create_popup(caller_number, agent_id, call_id):
 		frappe.db.commit()
 	else:
 		ld = frappe.get_doc("Lead", ld_name)
-	
+
+
 	#Make popup content.
 	lead_fields = {"mobile_no": caller_number,  
 			"lead_name": ld.lead_name, 
@@ -110,22 +81,39 @@ def create_popup(caller_number, agent_id, call_id):
 	for u in frappe.get_all("User", fields=['name'], filters={"role": "Sales User"}):
 		frappe.async.publish_realtime(event="msgprint", message=popup_content, user=u.name)
 
+
+#Uses regex to match and extract a 10 digit mobile no from the caller_number parameter. 
+#'+' must be encoded if received from URL. 
 def process_mobile_no(caller_number):
-	#Strip the +91
-	#"^\+(91|0)\d{9,13}$" : Regex for number.
-
-	#Ensure that the raw number is in a specific format 
-	# rule = re.compile(r"^\+(91|0)\d{9,13}$")
-
-	# if not rule.search(caller_number):
-	# 	frappe.throw(_("Mobile No. format is invalid."))
-
-	#Process the number. Subtract left ten digits.
-	final_caller_number = caller_number[-10:]
+	matched_extracted_mobno = re.search(r"^\+?(91|0)\d{10}$", caller_number)
+	
+	if matched_extracted_mobno:
+		mobno = matched_extracted_mobno.group(0) 
+		return mobno[-10:]
+	else:
+		return ""
 
 
-	return final_caller_number
+def validate_request_header():
+	key_header = frappe.get_request_header("awf_erpnext_api_key")
+	key_local = frappe.get_single("Awfis Settings").api_key_knowlarity
 
+	if key_header == "":
+		return -1 #"Key header is blank"
+	elif key_header != key_local:
+		return 0 #"{0} != {1} : Key header does not match local key".format(key_header, key_local)
+	else:
+		return 1 #""
+
+
+def validate_agent(agent_number):
+	agent_number_processed = process_mobile_no(agent_number)
+	agents = frappe.get_all("User", fields=['name'], filters={"role": "Sales User", "phone": agent_number_processed})
+
+	if len(agents) > 0:
+		return agents[0]["name"] #Return the name of the first agent.
+	else:
+		return ""
 
 #from frappe.core.notifications import get_notification_config
 
@@ -142,12 +130,21 @@ def generate_key_knowlarity():
 	return apikey #{ "key" : apikey }
 
 @frappe.whitelist(allow_guest=True)
-def popuptest():
+def popuptest(caller_number, agent_number, call_id):
+	is_request_valid = validate_request_header()
+	caller_no = process_mobile_no(caller_number)
+	agent_id = validate_agent(agent_number)
 
-	#frappe.msgprint(validate_request_header())
+	if is_request_valid != 1:
+		return "You are not authorized to make this request. [0]"
+	elif agent_id == "":
+		return "No agent with this number."
+	else:
+		return "Popup created {c}, {a}, {cl}".format(c=caller_no, a=agent_number, cl=call_id)
+		#create_popup(caller_number, agent_id, frappe.db.escape(call_id))
 
-	for u in frappe.get_all("User", fields=['name'], filters={"role": "Sales User"}):
-		#emit_via_redis(event="msgprint", message="Howdy!", room=get_site_room())
-		frappe.async.publish_realtime(event="msgprint", message="Howdy!", user=u.name)
-		#frappe.publish_realtime('msgprint', 'Howdy!', user='Administrator')
-		#frappe.msgprint(frappe.session.user)
+
+# @frappe.whitelist(allow_guest=True)
+# def regextest(caller_number):
+# 	cano = process_mobile_no(caller_number)
+# 	return "Raw: {r}, Processed: {p}".format(r=caller_number, p=cano)
