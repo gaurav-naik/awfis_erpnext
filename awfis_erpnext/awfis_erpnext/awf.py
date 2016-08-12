@@ -98,7 +98,7 @@ def process_mobile_no(caller_number):
 
 
 def validate_request_header():
-	key_header = frappe.get_request_header("awf_erpnext_api_key")
+	key_header = frappe.get_request_header("awfis-api-key")
 	key_local = frappe.get_single("Awfis Settings").api_key_knowlarity
 
 	if key_header == "":
