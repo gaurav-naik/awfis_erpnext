@@ -85,8 +85,11 @@ def create_popup(caller_number, agent_id, call_id):
 	frappe.db.commit()
 
 	#Display the actual popup to all sales users.
-	for u in frappe.get_all("User", fields=['name'], filters={"role": "Sales User"}):
-		frappe.async.publish_realtime(event="msgprint", message=popup_content, user=u.name)
+	# for u in frappe.get_all("User", fields=['name'], filters={"role": "Sales User"}):
+#		frappe.async.publish_realtime(event="msgprint", message=popup_content, user=u.name)
+
+	#Display popup to agent
+	frappe.async.publish_realtime(event="msgprint", message=popup_content, user=agent_id)
 
 
 #Uses regex to match and extract a 10 digit mobile no from the caller_number parameter. 
