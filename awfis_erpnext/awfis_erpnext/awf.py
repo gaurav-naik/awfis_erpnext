@@ -85,10 +85,10 @@ def create_popup(caller_number, agent_id, call_id):
 	frappe.db.commit()
 
 	#Display the actual popup to all sales users.
-	# for u in frappe.get_all("User", fields=['name'], filters={"role": "Sales User"}):
-#		frappe.async.publish_realtime(event="msgprint", message=popup_content, user=u.name)
-
 	#Display popup to agent
+	# for u in frappe.get_all("User", fields=['name'], filters={"role": "Sales User"}):
+	# 	frappe.async.publish_realtime(event="msgprint", message=popup_content, user=u.name)
+
 	frappe.async.publish_realtime(event="msgprint", message=popup_content, user=agent_id)
 
 
@@ -147,17 +147,35 @@ def generate_key_knowlarity():
 
 @frappe.whitelist(allow_guest=True)
 def popuptest(caller_number, agent_number, call_id):
+
 	is_request_valid = validate_request_header()
 	caller_no = process_mobile_no(caller_number)
+	agent_no = process_mobile_no(agent_number)
 	agent_id = validate_agent(agent_number)
 
 	if is_request_valid != 1:
-		return "You are not authorized to make this request. [0]"
+		return "You are not authorized to make this request."
+	elif caller_no == "":
+		return "Caller number is invalid."
+	elif agent_no == "":
+		return "Agent number is invalid."
 	elif agent_id == "":
 		return "No agent with this number."
 	else:
 		return "Popup created {c}, {a}, {cl}".format(c=caller_no, a=agent_number, cl=call_id)
 		#create_popup(caller_number, agent_id, frappe.db.escape(call_id))
+
+	# is_request_valid = validate_request_header()
+	# caller_no = process_mobile_no(caller_number)
+	# agent_id = validate_agent(agent_number)
+
+	# if is_request_valid != 1:
+	# 	return "You are not authorized to make this request. [0]"
+	# elif agent_id == "":
+	# 	return "No agent with this number."
+	# else:
+	# 	return "Popup created {c}, {a}, {cl}".format(c=caller_no, a=agent_number, cl=call_id)
+	# 	#create_popup(caller_number, agent_id, frappe.db.escape(call_id))
 
 
 # @frappe.whitelist(allow_guest=True)
