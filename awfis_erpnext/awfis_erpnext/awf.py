@@ -162,7 +162,7 @@ def popuptest(caller_number, agent_number, call_id):
 	elif agent_id == "":
 		return "No agent with this number."
 	else:
-		return "Popup created {c}, {a}, {cl}".format(c=caller_no, a=agent_number, cl=call_id)
+		return "Popup created {c}, {a}, {aid}, {cl}".format(c=caller_no, a=agent_number, aid=agent_id, cl=call_id)
 		#create_popup(caller_number, agent_id, frappe.db.escape(call_id))
 
 	# is_request_valid = validate_request_header()
