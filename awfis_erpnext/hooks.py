@@ -110,4 +110,22 @@ notification_config = "awfis_erpnext.awfis_erpnext.awf.awfis_notification_filter
 # override_whitelisted_methods = {
 # 	"frappe.desk.doctype.event.event.get_events": "awfis_erpnext.event.get_events"
 # }
-fixtures = ["Custom Script", "Custom Field", "Property Setter"]
+fixtures = ["Custom Script",
+             {"dt": "Custom Field", "filters":[["name", "in", ['Purchase Order-awfis_warehouse',
+                    'Lead-awfis_spaces', 'Lead-sb_spaces', 'Lead-lead_awfis_centres',
+                    'Lead-section_break_centres', 'Lead-awfis_lead_channel', 'Lead-channel_partner',
+                    'Lead-online_listing', 'Lead-social_media', 'Lead-reason_lost_or_on_hold',
+                    'Lead-lead_state', 'Lead-site_visited', 'Lead-awfis_company_website',
+                    'Lead-awfis_email_id', 'Lead-awfis_lead_territory', 'Lead-awfis_mobile_no',
+                    'Lead-last_name', 'Lead-first_name', 'Opportunity-priority', 'Opportunity-complaint_issue',
+                    'Opportunity-opportunity_awfis_centres', 'Opportunity-reason_lost_or_on_hold',
+                    'Opportunity-awfis_lead_territory', 'Opportunity-awfis_lead_channel', 'Sales Order-awfis_booking_id',
+                    'Sales Order-mode_of_payment', 'Sales Order-discount_coupon', 'Sales Order-centre',
+                    'Sales Order-column_break_city_centre', 'Sales Order-awfis_city', 'Sales Order-section_city_centre',
+                    'Sales Order-awfis_channel_partner', 'Sales Order-awfis_lead_source', 'Sales Order-awfis_lead',
+                    'Contact-joining_date', 'Contact-pan_card_no', 'Contact-date_of_anniversary', 'Contact-date_of_birth',
+                    'Contact-col_break_custom_1', 'Contact-contact_type', 'Customer-number_of_employees', 'Customer-industry',
+                    'Customer-company_website', 'Item Attribute Value-awfis_centre', 'Item Attribute Value-col_break_1',
+                    'Issue-awfis_channel', 'Communication-awfis_channel']]]},
+             "Property Setter",
+             {"dt":"Print Format", "filters": [["name", "in", ["Awfis Purchase Order"]]]}]
