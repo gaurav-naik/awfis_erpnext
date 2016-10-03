@@ -62,13 +62,32 @@ def notify_incoming_call(caller_number, agent_number, call_id):
 
 @frappe.whitelist()
 def validate_stock_entry(self, method):
-	expiry_warning = int(frappe.db.get_value('Awfis Settings', None, 'expiry_warning_period') or 0)
-	if expiry_warning:
-		expiry_date = frappe.db.get_value('Batch', self.batch_no, 'expiry_date')
-		x_day_before = (add_days(getdate(self.expiry_date), expiry_warning) <= date.today())
-		# x_day_before = (expiry_date-expiry_warning) <= date.today())
-		if x_day_before:
-			frappe.throw(_("Material Can not be transfered. because of expiry warning period of {0}").format(expiry_warning))
+
+	for item in self.items:	
+		#If batch item, batch no must be specified.
+		if frappe.db.get_value("Item", item.item_code, "has_batch_no"):
+			# if (not item.batch_no):
+			# 	frappe.throw(_("Row {0}: Batch number is mandatory for {1}".format(item.idx, item.item_name)))
+			expiry_warning_period = int(frappe.db.get_value('Awfis Settings', None, 'expiry_warning_period') or 0)
+
+			if expiry_warning_period:	
+				expiry_date = frappe.db.get_value('Batch', item.batch_no, 'expiry_date')
+
+				for x in xrange(1,10):
+						print "Expdatediff: {0}, Warningperiod: {1}".format((getdate(expiry_date) - frappe.utils.datetime.date.today()).days, expiry_warning_period)
+
+
+				if (getdate(expiry_date) - frappe.utils.datetime.date.today()).days <= expiry_warning_period:
+					frappe.throw(_("Row {0}: Item {1} cannot be issued. Batch {2} for selected item is about to expire.".format(item.idx, item.item_name, item.batch_no)))
+
+	# if expiry_warning:
+	# 	expiry_date = frappe.db.get_value('Batch', self.batch_no, 'expiry_date')
+	# 	x_day_before = (add_days(getdate(self.expiry_date), expiry_warning) <= date.today())
+	# 	# x_day_before = (expiry_date-expiry_warning) <= date.today())
+	# 	if x_day_before:
+	# 		frappe.throw(_("Material Can not be transfered. because of expiry warning period of {0}").format(expiry_warning))
+
+
 
 
 # ===============
