@@ -34,7 +34,7 @@ def notify_incoming_call(caller_number, agent_number, call_id):
 	else:
 		create_popup(caller_number, agent_id, frappe.db.escape(call_id))
 
-	# if possible then minues days from datetime
+	# # if possible then minues days from datetime
 	# def minues_to_date(date, years=0, months=0, days=0):
 	# 	"""Adds `days` to the given date"""
 	# 	from dateutil.relativedelta import relativedelta
