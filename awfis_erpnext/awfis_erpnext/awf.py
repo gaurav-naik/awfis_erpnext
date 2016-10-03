@@ -3,7 +3,8 @@ from frappe import async
 from frappe import _
 
 import re #regular expressions
-
+from frappe.utils import flt, getdate, add_days, formatdate
+from  datetime import  timedelta
 from frappe.async import get_redis_server, get_user_room
 
 @frappe.whitelist()
@@ -33,11 +34,47 @@ def notify_incoming_call(caller_number, agent_number, call_id):
 	else:
 		create_popup(caller_number, agent_id, frappe.db.escape(call_id))
 
+	# if possible then minues days from datetime
+	# def minues_to_date(date, years=0, months=0, days=0):
+	# 	"""Adds `days` to the given date"""
+	# 	from dateutil.relativedelta import relativedelta
+
+	# 	as_string, as_datetime = False, False
+	# 	if date==None:
+	# 		date = now_datetime()
+
+	# 	if isinstance(date, basestring):
+	# 		as_string = True
+	# 		if " " in date:
+	# 			as_datetime = True
+	# 		date = parser.parse(date)
+
+	# 	date = date - relativedelta(years=years, months=months, days=days)
+
+	# 	if as_string:
+	# 		if as_datetime:
+	# 			return date.strftime(DATETIME_FORMAT)
+	# 		else:
+	# 			return date.strftime(DATE_FORMAT)
+	# 	else:
+	# 		return date
 
 
+@frappe.whitelist()
 def validate_stock_entry(self, method):
-	pass
+	expiry_warning = int(frappe.db.get_value('Awfis Settings', None, 'expiry_warning_period') or 0)
+	if expiry_warning:
+		expiry_date = frappe.db.get_value('Batch', self.batch_no, 'expiry_date')
+		x_day_before = (add_days(getdate(self.expiry_date), expiry_warning) <= date.today())
+		# x_day_before = (expiry_date-expiry_warning) <= date.today())
+		if x_day_before:
+			frappe.throw(_("Material Can not be transfered. because of expiry warning period of {0}").format(expiry_warning))
+
+
+# ===============
+# 		self.pst_respond_by = str(frappe.utils.data.getdate(self.pst_posted_on) + frappe.utils.datetime.timedelta(days=2))
 # ===========
+#  my data start work here.......................................
 # // additional validation on dates
 # cur_frm.add_fetch("Awfis Settings", "expiry_warning_period", "expiry_warning_period");
 # cur_frm.add_fetch("Batch", "expiry_date", "expiry_date");
