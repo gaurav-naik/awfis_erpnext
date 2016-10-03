@@ -52,5 +52,14 @@
   "name": "Item Attribute-Client", 
   "script": "cur_frm.add_fetch(\"awfis_centre\", \"centre_name\", \"attribute_value\");\ncur_frm.add_fetch(\"awfis_centre\", \"abbreviation\", \"abbr\");", 
   "script_type": "Client"
+ }, 
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Stock Entry", 
+  "modified": "2016-10-03 11:50:23.373465", 
+  "name": "Stock Entry-Client", 
+  "script": "// additional validation on dates\ncur_frm.add_fetch(\"Awfis Settings\", \"expiry_warning_period\", \"expiry_warning_period\");\ncur_frm.add_fetch(\"Batch\", \"expiry_date\", \"expiry_date\");\n\nfrappe.ui.form.on(\"batch_no\", \"validate\", function(frm) {\n\t\n    if (frm.doc.expiry_date - frm.doc.expiray_warning_period < get_today()) {\n        msgprint(\"You can not Transfer material \");\n        validated = false;\n    }\n});\n\n", 
+  "script_type": "Client"
  }
 ]
