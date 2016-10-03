@@ -71,11 +71,9 @@ notification_config = "awfis_erpnext.awfis_erpnext.awf.awfis_notification_filter
 # Hook on document methods and events
 
 # doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-#	}
+# 	"Stock Entry": {
+#         "validate": "awfis_erpnext.awfis_erpnext.awf.validate_stock_entry"
+# 	}
 # }
 
 # Scheduled Tasks

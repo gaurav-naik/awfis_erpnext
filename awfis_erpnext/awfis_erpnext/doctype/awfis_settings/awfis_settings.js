@@ -8,7 +8,7 @@ frappe.ui.form.on('Awfis Settings', {
 
 	btn_generate_key_knowlarity: function(frm) {
 		if (frm.doc.api_key_knowlarity) {
-			frappe.confirm("The current key will be replaced. Proceed?", 
+			frappe.confirm("The current key will be replaced. Proceed?",
 				function() {
 					generate_and_set_key(frm);
 				}
