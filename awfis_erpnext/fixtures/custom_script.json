@@ -56,10 +56,10 @@
  {
   "docstatus": 0, 
   "doctype": "Custom Script", 
-  "dt": "Stock Entry", 
-  "modified": "2016-10-03 11:50:23.373465", 
-  "name": "Stock Entry-Client", 
-  "script": "// additional validation on dates\ncur_frm.add_fetch(\"Awfis Settings\", \"expiry_warning_period\", \"expiry_warning_period\");\ncur_frm.add_fetch(\"Batch\", \"expiry_date\", \"expiry_date\");\n\nfrappe.ui.form.on(\"batch_no\", \"validate\", function(frm) {\n\t\n    if (frm.doc.expiry_date - frm.doc.expiray_warning_period < get_today()) {\n        msgprint(\"You can not Transfer material \");\n        validated = false;\n    }\n});\n\n", 
+  "dt": "Material Request", 
+  "modified": "2016-10-04 13:48:57.309107", 
+  "name": "Material Request-Client", 
+  "script": "//Allow only material transfers when user has just Stock User in roles.\n//Length == 3: user_roles=[\"Stock User\", \"All\", \"Guest\"]\nfrappe.ui.form.on('Material Request', 'validate', function(frm){\n\tif ((user_roles.length == 3) && (user_roles[0] == \"Stock User\")) {\n\t\tif (cur_frm.doc.material_request_type != \"Material Transfer\") {\n\t\t\tvalidate=false;\n\t\t\tfrappe.msgprint('Not allowed.');\n\t\t}\n\t}\n});", 
   "script_type": "Client"
  }
 ]
