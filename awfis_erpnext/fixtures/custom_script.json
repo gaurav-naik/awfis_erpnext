@@ -57,9 +57,9 @@
   "docstatus": 0, 
   "doctype": "Custom Script", 
   "dt": "Material Request", 
-  "modified": "2016-10-04 13:48:57.309107", 
+  "modified": "2016-10-04 19:25:07.984146", 
   "name": "Material Request-Client", 
-  "script": "//Allow only material transfers when user has just Stock User in roles.\n//Length == 3: user_roles=[\"Stock User\", \"All\", \"Guest\"]\nfrappe.ui.form.on('Material Request', 'validate', function(frm){\n\tif ((user_roles.length == 3) && (user_roles[0] == \"Stock User\")) {\n\t\tif (cur_frm.doc.material_request_type != \"Material Transfer\") {\n\t\t\tvalidate=false;\n\t\t\tfrappe.msgprint('Not allowed.');\n\t\t}\n\t}\n});", 
+  "script": "//Allow only material transfers when user has just Stock User in roles.\n//Length == 3: user_roles=[\"Stock User\", \"All\", \"Guest\"]\nfrappe.ui.form.on('Material Request', 'validate', function(frm){\n\tif ((user_roles.length == 3) && (user_roles[0] == \"Stock User\")) {\n\t\tif (cur_frm.doc.material_request_type != \"Material Transfer\") {\n\t\t\tvalidated=false;\n\t\t\tfrappe.msgprint('Not allowed.');\n\t\t}\n\t}\n});", 
   "script_type": "Client"
  }
 ]

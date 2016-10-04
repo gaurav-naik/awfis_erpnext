@@ -62,7 +62,6 @@ def notify_incoming_call(caller_number, agent_number, call_id):
 
 @frappe.whitelist()
 def validate_stock_entry(self, method):
-
 	for item in self.items:
 		#If batch item, batch no must be specified.
 		if frappe.db.get_value("Item", item.item_code, "has_batch_no"):
@@ -70,9 +69,9 @@ def validate_stock_entry(self, method):
 			# 	frappe.throw(_("Row {0}: Batch number is mandatory for {1}".format(item.idx, item.item_name)))
 			expiry_warning_period = int(frappe.db.get_value('Awfis Settings', None, 'expiry_warning_period') or 0)
 
-			if expiry_warning_period:
+			if expiry_warning_period and item.batch_no: #Without batch no, validation goes through.
 				expiry_date = frappe.db.get_value('Batch', item.batch_no, 'expiry_date')
-
+				
 				if (getdate(expiry_date) - frappe.utils.datetime.date.today()).days <= expiry_warning_period:
 					frappe.throw(_("Row {0}: Item {1} cannot be issued. Batch {2} for selected item is about to expire.".format(item.idx, item.item_name, item.batch_no)))
 
