@@ -73,6 +73,9 @@ notification_config = "awfis_erpnext.awfis_erpnext.awf.awfis_notification_filter
 doc_events = {
 	"Stock Entry": {
 		"validate": "awfis_erpnext.awfis_erpnext.awf.validate_stock_entry"
+	},
+	"Purchase Receipt": {
+		"validate": "awfis_erpnext.awfis_erpnext.awf.validate_stock_entry"
 	}
 }
 
