@@ -75,7 +75,7 @@ doc_events = {
 		"validate": "awfis_erpnext.awfis_erpnext.awf.validate_stock_entry"
 	},
 	"Purchase Receipt": {
-		"validate": "awfis_erpnext.awfis_erpnext.awf.validate_stock_entry"
+		"on_submit": "awfis_erpnext.awfis_erpnext.awf.validate_stock_entry"
 	}
 }
 
